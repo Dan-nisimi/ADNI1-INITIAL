@@ -1,0 +1,216 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from google.colab import files
+
+# Create an upload button
+uploaded = files.upload()
+Saving ADNIMERGE_03May2024.xlsx to ADNIMERGE_03May2024.xlsx
+
+
+#read file
+df = pd.read_excel('ADNIMERGE_03May2024.xlsx')
+
+#display first few rows of ADNIMERGE, in this case 5
+df.head()
+
+
+#displays summary of the amount of rows and columns, highlighting a few dataset
+df
+
+[8]
+#access the column labels of and returns an Index object containing the column names
+
+df.columns
+Index(['RID', 'COLPROT', 'ORIGPROT', 'PTID', 'SITE', 'VISCODE', 'EXAMDATE',
+       'DX_bl', 'AGE', 'PTGENDER',
+       ...
+       'PTAU_bl', 'FDG_bl', 'PIB_bl', 'AV45_bl', 'FBB_bl', 'Years_bl',
+       'Month_bl', 'Month', 'M', 'update_stamp'],
+      dtype='object', length=116)
+
+# used to access the row labels (index) of the dataset,returning an Index
+#object containing the row labels.
+df.index
+RangeIndex(start=0, stop=16421, step=1)
+#returns the row and column index, including datatypes and memory used
+df.info()
+<class 'pandas.core.frame.DataFrame'>
+RangeIndex: 16421 entries, 0 to 16420
+Columns: 116 entries, RID to update_stamp
+dtypes: datetime64[ns](3), float64(94), int64(5), object(14)
+memory usage: 14.5+ MB
+
+[10]
+# returns the total number of elements in the DataFrame.
+df.size
+1904836
+
+# descriptive statistics that summarize the central tendency, dispersion,
+#and shape of the dataset’s distribution, excluding NaN values
+df.describe()
+
+
+#selection of columns of interest
+df[['RID', 'COLPROT', 'ORIGPROT', 'VISCODE', 'DX_bl', 'AGE', 'APOE4', 'ABETA', 'TAU', 'PTAU', 'MMSE']]
+
+
+#selection of columns and dataset of interest, in this case, ADNI1
+ADNI1_data = df[['RID', 'ORIGPROT', 'VISCODE', 'DX_bl', 'AGE', 'APOE4', 'ABETA', 'TAU', 'PTAU', 'MMSE']]
+ADNI1_data
+
+
+#index of ADNI1 based on 'ORIGPROT'
+count_adni1= df['ORIGPROT'].value_counts().get('ADNI1', 0)
+count_adni1
+
+7267
+
+# Filter data for ADNI1 protocol, where RID is patient identification number and
+#VISCODE is visit code
+rid_viscode_adni1 = df[['RID', 'VISCODE']]
+rid_viscode_adni1
+
+#get first 50 dataset of ADNI1
+#plot graph of RID vs VISCODE, first 50n dataset
+rid_viscode_adni1_first_50 = rid_viscode_adni1.iloc[:50]
+
+rid_viscode_adni1_first_50.groupby(['RID', 'VISCODE']).size().unstack().plot(kind='bar', stacked=True)
+
+plt.title('Bar Chart: RID vs VISCODE for ADNI1 Protocol (First 50)')
+plt.xlabel('RID')
+plt.ylabel('VISCODE')
+plt.xticks(rotation=0)
+
+plt.show()
+
+
+#assign RID vs DX_bl dataframe to a variable, rid_dxbl_adni1
+rid_dxbl_adni1 = df[['RID', 'DX_bl']]
+rid_dxbl_adni1
+
+#get first 50 dataset of ADNI1
+#plot graph of RID vs Dx_bl, first 50# dataset
+rid_dxbl_adni1_first_50 = rid_dxbl_adni1.iloc[:50]
+
+rid_dxbl_adni1_first_50.groupby(['RID', 'DX_bl']).size().unstack().plot(kind='bar', stacked=True)
+
+plt.title('Bar Chart: RID vs DX_bl for ADNI1 Protocol (First 50)')
+plt.xlabel('RID')
+plt.ylabel('DX_bl')
+plt.xticks(rotation=0)
+
+plt.show()
+
+
+#Filter data for specific columns of interest in ADNI1 protocol and
+#assign to variable df_correlate, remove empty fields
+df_correlate = df[['AGE', 'APOE4', 'TAU', 'PTAU', 'MMSE']]
+df_correlate.dropna()
+df_correlate['TAU'] = pd.to_numeric(df_correlate['TAU'], errors='coerce')
+df_correlate['PTAU'] = pd.to_numeric(df_correlate['PTAU'], errors='coerce')
+
+
+
+# Calculate Pearson correlation
+pearson_correlation = df_correlate.corr(method='pearson')
+print(pearson_correlation)
+            AGE     APOE4       TAU      PTAU      MMSE
+AGE    1.000000 -0.126162  0.066469  0.046020 -0.094294
+APOE4 -0.126162  1.000000  0.287970  0.313813 -0.261159
+TAU    0.066469  0.287970  1.000000  0.978227 -0.309256
+PTAU   0.046020  0.313813  0.978227  1.000000 -0.296978
+MMSE  -0.094294 -0.261159 -0.309256 -0.296978  1.000000
+
+<ipython-input-18-80bb02baf4a3>:5: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df_correlate['TAU'] = pd.to_numeric(df_correlate['TAU'], errors='coerce')
+<ipython-input-18-80bb02baf4a3>:6: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df_correlate['PTAU'] = pd.to_numeric(df_correlate['PTAU'], errors='coerce')
+
+This table shows how five different variables are related to each other. Each number tells us whether two variables tend to increase or decrease together, or if there's no relationship at all.
+
+AGE:
+
+AGE to APOE4 (-0.126162): Very weak negative relationship; as people get older, APOE4 slightly decreases. AGE to TAU (0.066469): Very weak positive relationship; as people get older, TAU slightly increases. AGE to PTAU (0.046020): Very weak positive relationship; as people get older, PTAU slightly increases. AGE to MMSE (-0.094294): Very weak negative relationship; as people get older, MMSE slightly decreases.
+
+APOE4:
+
+APOE4 to TAU (0.287970): Moderate positive relationship; higher APOE4 is somewhat associated with higher TAU. APOE4 to PTAU (0.313813): Moderate positive relationship; higher APOE4 is somewhat associated with higher PTAU. APOE4 to MMSE (-0.261159): Moderate negative relationship; higher APOE4 is somewhat associated with lower MMSE.
+
+TAU:
+
+TAU to PTAU (0.978227): Strong positive relationship; higher TAU is strongly associated with higher PTAU. TAU to MMSE (-0.309256): Moderate negative relationship; higher TAU is somewhat associated with lower MMSE.
+
+PTAU:
+
+PTAU to MMSE (-0.296978): Moderate negative relationship; higher PTAU is somewhat associated with lower MMSE.
+
+
+
+#pearson correlation heat map
+sns.heatmap(pearson_correlation, annot=True, cmap='coolwarm', vmin=-1, vmax=1)
+plt.title('Pearson Correlation Matrix')
+plt.show()
+
+
+df_correlate = df[['AGE', 'APOE4', 'TAU', 'PTAU', 'MMSE']]
+df_correlate.dropna()
+df_correlate['TAU'] = pd.to_numeric(df_correlate['TAU'], errors='coerce')
+df_correlate['PTAU'] = pd.to_numeric(df_correlate['PTAU'], errors='coerce')
+df_correlate.plot()
+plt.show()
+
+
+<ipython-input-20-f4df50893627>:3: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df_correlate['TAU'] = pd.to_numeric(df_correlate['TAU'], errors='coerce')
+<ipython-input-20-f4df50893627>:4: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df_correlate['PTAU'] = pd.to_numeric(df_correlate['PTAU'], errors='coerce')
+
+
+df_correlate = df[['AGE', 'APOE4', 'TAU', 'PTAU', 'MMSE']]
+df_correlate.dropna()
+df_correlate['TAU'] = pd.to_numeric(df_correlate['TAU'], errors='coerce')
+df_correlate['PTAU'] = pd.to_numeric(df_correlate['PTAU'], errors='coerce')
+df_correlate.plot(kind = 'scatter', x = 'AGE', y = 'APOE4')
+df_correlate.plot(kind = 'scatter', x = 'AGE', y = 'TAU')
+df_correlate.plot(kind = 'scatter', x = 'AGE', y = 'PTAU')
+df_correlate.plot(kind = 'scatter', x = 'APOE4', y = 'TAU')
+df_correlate.plot(kind = 'scatter', x = 'APOE4', y = 'PTAU')
+df_correlate.plot(kind = 'scatter', x = 'APOE4', y =  'MMSE')
+df_correlate.plot(kind = 'scatter', x = 'PTAU', y = 'TAU')
+df_correlate.plot(kind = 'scatter', x = 'MMSE', y = 'TAU')
+df_correlate.plot(kind = 'scatter', x = 'MMSE', y = 'PTAU')
+
+plt.show()
+<ipython-input-21-68389104baa2>:3: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df_correlate['TAU'] = pd.to_numeric(df_correlate['TAU'], errors='coerce')
+<ipython-input-21-68389104baa2>:4: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df_correlate['PTAU'] = pd.to_numeric(df_correlate['PTAU'], errors='coerce')
+
+
